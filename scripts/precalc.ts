@@ -156,11 +156,13 @@ async function run() {
   };
 
   await fs.writeFile(
-    path.join(outputDir, "manifest.json"),
+    path.join(process.cwd(), "src", "heroManifest.json"),
     JSON.stringify(manifest, null, 2),
   );
 
-  console.log("Done! Precalculated images saved to public/hero-stops/");
+  console.log(
+    "Done! Precalculated images saved to public/hero-stops/ and manifest saved to src/heroManifest.json",
+  );
 }
 
 run().catch(console.error);
