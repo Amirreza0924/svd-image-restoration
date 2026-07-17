@@ -13,7 +13,7 @@ export default function Playground() {
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const state = useSvdStack(file, { maxDimension: 256 });
+  const state = useSvdStack(file);
 
   const handleFile = useCallback((f: File) => {
     if (!f.type.startsWith("image/")) return;
