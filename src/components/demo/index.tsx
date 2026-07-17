@@ -106,6 +106,7 @@ export default function Demo() {
   );
 }
 
+// #region KBackdrop component
 function KBackdrop({
   scrollYProgress,
   currentK,
@@ -138,7 +139,9 @@ function KBackdrop({
     </motion.span>
   );
 }
+// #endregion
 
+// #region ImageLayer component
 function ImageLayer({
   src,
   index,
@@ -176,3 +179,4 @@ function ImageLayer({
     />
   );
 }
+// #endregion

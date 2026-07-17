@@ -1,10 +1,7 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Upload, Image as ImageIcon } from "lucide-react";
-import { useSvdStack } from "@/engine";
-import ScanningLoader from "./ScanningLoader";
-import BeforeAfterSlider from "./BeforeAfterSlider";
-import KSlider from "./KSlider";
+import { useSvdStack, type SvdStackState } from "@/engine";
 
 export default function Playground() {
   const [file, setFile] = useState<File | null>(null);
@@ -191,5 +188,191 @@ export default function Playground() {
         </div>
       </div>
     </section>
+  );
+}
+
+// ── Private Sub-Components ──────────────────────────────────────────────────
+
+function ScanningLoader({ state }: { state: SvdStackState }) {
+  const loaded = state.status === "processing" ? state.loaded : 0;
+  const total = state.status === "processing" ? state.total : 0;
+
+  return (
+    <div className="flex flex-col items-center gap-6">
+      <div className="relative aspect-square w-64 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 md:w-80">
+        <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,#fff_0px,#fff_1px,transparent_1px,transparent_28px)] opacity-[0.06]" />
+        <motion.div
+          className="absolute inset-x-0 h-1 bg-accent shadow-[0_0_20px_var(--color-accent)]"
+          initial={{ top: "0%" }}
+          animate={{ top: "100%" }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+        />
+      </div>
+
+      <div className="text-center">
+        <p className="font-mono text-xs uppercase tracking-[0.35em] text-accent/80">
+          Decomposing image
+        </p>
+        <p className="mt-2 font-mono text-sm text-neutral-500">
+          {total > 0
+            ? `${loaded} / ${total} ranks reconstructed`
+            : "Computing singular values…"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function KSlider({
+  index,
+  totalStops,
+  currentK,
+  maxK,
+  onChange,
+}: {
+  index: number;
+  totalStops: number;
+  currentK: number;
+  maxK: number;
+  onChange: (index: number) => void;
+}) {
+  const progress = totalStops > 1 ? (index - 1) / (totalStops - 1) : 0;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-accent/70 font-mono text-xs tracking-[0.35em] uppercase">
+          Singular values (k)
+        </span>
+        <span className="border-accent/20 bg-accent/5 text-accent inline-flex items-center gap-1 rounded-full border px-3 py-1 font-mono text-sm tabular-nums shadow-[0_0_12px_var(--color-accent-soft)]">
+          {currentK}
+          <span className="text-accent/40">/ {maxK}</span>
+        </span>
+      </div>
+
+      <div className="relative">
+        <input
+          type="range"
+          min={1}
+          max={totalStops}
+          value={index}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="k-slider-input peer relative z-10 h-8 w-full cursor-pointer touch-none appearance-none bg-transparent"
+        />
+
+        <div className="pointer-events-none absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-neutral-800 shadow-inner">
+          <div
+            className="from-accent/60 to-accent h-full rounded-full bg-linear-to-r shadow-[0_0_10px_var(--color-accent-soft)] transition-[width] duration-75"
+            style={{ width: `${progress * 100}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-between text-[10px] tracking-wider text-neutral-600 uppercase">
+        <span>High compression</span>
+        <span>Original quality</span>
+      </div>
+    </div>
+  );
+}
+
+function BeforeAfterSlider({
+  originalSrc,
+  compressedSrc,
+  alt,
+}: {
+  originalSrc: string;
+  compressedSrc: string;
+  alt?: string;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState(50);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const updatePosition = useCallback((clientX: number) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    setPosition((x / rect.width) * 100);
+  }, []);
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      setIsDragging(true);
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      updatePosition(e.clientX);
+    },
+    [updatePosition],
+  );
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDragging) return;
+      updatePosition(e.clientX);
+    },
+    [isDragging, updatePosition],
+  );
+
+  const handlePointerUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") setPosition((p) => Math.max(0, p - 2));
+      if (e.key === "ArrowRight") setPosition((p) => Math.min(100, p + 2));
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="group relative cursor-col-resize overflow-hidden rounded-2xl border border-white/8 select-none touch-none"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      role="slider"
+      aria-label="Before/after comparison"
+      aria-valuenow={Math.round(position)}
+      tabIndex={0}
+    >
+      <img
+        src={originalSrc}
+        alt={alt ? `${alt} — original` : "Original image"}
+        className="block w-full"
+        draggable={false}
+      />
+
+      <img
+        src={compressedSrc}
+        alt={alt ? `${alt} — compressed` : "Compressed image"}
+        className="absolute inset-0 h-full w-full object-cover"
+        style={{
+          clipPath: `inset(0 ${100 - position}% 0 0)`,
+        }}
+        draggable={false}
+      />
+
+      <div
+        className="absolute top-0 bottom-0 z-20 w-0.5 bg-white/80 shadow-[0_0_8px_rgba(94,234,255,0.4)]"
+        style={{ left: `${position}%`, transform: "translateX(-50%)" }}
+      >
+        <div className="absolute top-1/2 left-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-neutral-900/80 shadow-lg backdrop-blur-sm transition-transform group-hover:scale-110">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M4 8L1 5.5V10.5L4 8Z" fill="white" fillOpacity="0.8" />
+            <path d="M12 8L15 5.5V10.5L12 8Z" fill="white" fillOpacity="0.8" />
+          </svg>
+        </div>
+      </div>
+
+      <div className="text-accent/80 pointer-events-none absolute bottom-3 left-3 z-10 rounded bg-black/60 px-2 py-0.5 font-mono text-[10px] tracking-wider uppercase backdrop-blur-sm">
+        Compressed
+      </div>
+      <div className="pointer-events-none absolute right-3 bottom-3 z-10 rounded bg-black/60 px-2 py-0.5 font-mono text-[10px] tracking-wider text-neutral-400 uppercase backdrop-blur-sm">
+        Original
+      </div>
+    </div>
   );
 }
