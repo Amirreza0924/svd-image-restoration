@@ -8,16 +8,30 @@ export default function Playground() {
   const [originalSrc, setOriginalSrc] = useState<string | null>(null);
   const [kIndex, setKIndex] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [showMobileWarning, setShowMobileWarning] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const state = useSvdStack(file);
 
-  const handleFile = useCallback((f: File) => {
-    if (!f.type.startsWith("image/")) return;
+  const processFile = useCallback((f: File) => {
     setFile(f);
     setOriginalSrc(URL.createObjectURL(f));
     setKIndex(0);
   }, []);
+
+  const handleFile = useCallback((f: File) => {
+    if (!f.type.startsWith("image/")) return;
+    
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    if (isMobile) {
+      setPendingFile(f);
+      setShowMobileWarning(true);
+      return;
+    }
+    
+    processFile(f);
+  }, [processFile]);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +65,8 @@ export default function Playground() {
   const currentStop = stops[kIndex];
 
   return (
+    <>
+    
     <section className="relative bg-neutral-950 px-6 py-24 md:py-36">
       <div className="mx-auto max-w-6xl text-center">
         <p className="text-accent/70 font-mono text-xs tracking-[0.4em] uppercase">
@@ -187,7 +203,47 @@ export default function Playground() {
           </AnimatePresence>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showMobileWarning && pendingFile && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-sm rounded-2xl border border-white/10 bg-neutral-900 p-6 shadow-2xl"
+            >
+              <h3 className="text-lg font-medium text-neutral-100">Performance Warning</h3>
+              <p className="mt-2 text-sm text-neutral-400">
+                SVD calculation is computationally heavy. On mobile devices, this might take a considerable amount of time. Consider using a Desktop for a smoother experience.
+              </p>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowMobileWarning(false);
+                    setPendingFile(null);
+                  }}
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-100 hover:bg-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMobileWarning(false);
+                    processFile(pendingFile);
+                    setPendingFile(null);
+                  }}
+                  className="bg-accent text-neutral-950 rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:bg-accent/90"
+                >
+                  Continue anyway
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
+    </>
   );
 }
 
