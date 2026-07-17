@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Upload, Image as ImageIcon } from "lucide-react";
 import { useSvdStack } from "@/engine";
-import ScanningLoader from "../demo/ScanningLoader";
+import ScanningLoader from "./ScanningLoader";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 import KSlider from "./KSlider";
 
