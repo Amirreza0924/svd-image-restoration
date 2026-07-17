@@ -1,0 +1,87 @@
+{
+  "stops": [
+    {
+      "k": 1,
+      "src": "/hero-stops/stop-0.webp"
+    },
+    {
+      "k": 2,
+      "src": "/hero-stops/stop-1.webp"
+    },
+    {
+      "k": 3,
+      "src": "/hero-stops/stop-2.webp"
+    },
+    {
+      "k": 4,
+      "src": "/hero-stops/stop-3.webp"
+    },
+    {
+      "k": 5,
+      "src": "/hero-stops/stop-4.webp"
+    },
+    {
+      "k": 7,
+      "src": "/hero-stops/stop-5.webp"
+    },
+    {
+      "k": 9,
+      "src": "/hero-stops/stop-6.webp"
+    },
+    {
+      "k": 10,
+      "src": "/hero-stops/stop-7.webp"
+    },
+    {
+      "k": 13,
+      "src": "/hero-stops/stop-8.webp"
+    },
+    {
+      "k": 15,
+      "src": "/hero-stops/stop-9.webp"
+    },
+    {
+      "k": 19,
+      "src": "/hero-stops/stop-10.webp"
+    },
+    {
+      "k": 22,
+      "src": "/hero-stops/stop-11.webp"
+    },
+    {
+      "k": 26,
+      "src": "/hero-stops/stop-12.webp"
+    },
+    {
+      "k": 30,
+      "src": "/hero-stops/stop-13.webp"
+    },
+    {
+      "k": 34,
+      "src": "/hero-stops/stop-14.webp"
+    },
+    {
+      "k": 43,
+      "src": "/hero-stops/stop-15.webp"
+    },
+    {
+      "k": 51,
+      "src": "/hero-stops/stop-16.webp"
+    },
+    {
+      "k": 64,
+      "src": "/hero-stops/stop-17.webp"
+    },
+    {
+      "k": 77,
+      "src": "/hero-stops/stop-18.webp"
+    },
+    {
+      "k": 85,
+      "src": "/hero-stops/stop-19.webp"
+    }
+  ],
+  "kEffectiveMax": 85,
+  "width": 239,
+  "height": 256
+}
